@@ -1,0 +1,572 @@
+https://www.youtube.com/watch?v=IYZDIhfAUM0
+
+ls - list files in a directory
+
+ls -latrh - list all files, long list format, sorted by time in reverse, with human readable file sizes
+
+ls /path - lists files in THAT directory
+
+cd - change directory
+
+pwd - shows full path to current working directory
+
+echo '...' - print text
+
+cat somefile.txt - print contents of the file somefile.txt
+
+touch filename - creates the file if it doesn't exist, or update its timestamp if it does
+
+cp file1 file1-copy - copy file1 to file1-copy
+
+mv file1 file2 - like copy, but moves it instead
+
+rm filename - delete a file
+
+rm -r directoryname - delete a directory (-r is recursive)
+
+rm -rf directoryname - force delete the files in a directory recursively (careful!)
+
+ln file1 file2 - create a hard link from one file to another
+
+ln -s file1 file2 - create a symlink from one file to another
+
+### 
+
+in linux, files are internally stored as inodes
+when we 'make a file', that file points to the inode that represents it
+a hard link is creating a new file that points directly to the inode
+a symlink is creating a new file, that points to the original file, which itself points to the inode
+
+a file is 'deleted' when all of the fiels that point to the inode are deleted
+so creating a symlink to a file, then deleting the original file, deletes the file
+if we instead create a hard link and delete the original file, the file still exists because the hard link is pointing to the file's inode
+
+###
+
+less filename - view large text files in a more readable format
+
+more filename - ironically less than 'less' - view text files but only going forwards
+
+most tools have a --help option which gives you instructions on how to use them
+however, you can also do
+man tool - gives you a manual page for the tool
+tldr does a similar thing (needs installing)
+
+grep 'abcd' filename.txt - pattern match against text, i.e. search for 'abcd' in filename.txt
+rg (ripgrep) is like grep but faster
+
+find -name 'node_modules' -type d - find files and directories
+fd is a faster and easier to use version of find, because the find syntax can be a bit difficult
+
+sed 's/OLD_TEXT/NEW_TEXT/' filename.txt - replace "OLD_TEXT" with "NEW_TEXT" in filename.txt
+you can actually use any character as the delimeter, not just / - just make sure the character isn't in the text!
+
+awk is a programming language focussing on text processing
+it's normally used for little one-liners like:
+
+awk '{print $5}' path/to/file - print the fifth column (aka field) in a space-separated file
+
+awk '/foo/ {print $2}' path/to/file - print the second column of the lines containing 'foo' in a space-separated file
+
+awk -F ',' '{print $NF}' path/to/file - print the last column of each line in a file, using a comma (instead of a space) as a field separator
+
+awk '{s+=$1} END {print s}' path/to/file - sum the values in the first column of a file and print the total
+
+sort file.txt - sort text contents
+defaults to alphabetic but -n => numeric, -R => random, ...
+
+head file.txt - shows the first few lines of a text file
+
+tail file.txt - shows the end of a file
+you can do tail -f file.txt to 'follow' and output as new lines are appended to the file
+
+to take the output of one command, and pass it as input to the next one, we use piping (|)
+
+for instance
+echo 'Hello world!' | sed 's/world/universe/'
+outputs "Hello universe!"
+
+xargs takes whatever you pipe into it, and splits it into little chunks
+it then passes those chunks as an argument into whatever command you specify
+
+e.g.
+ls | xargs du -sh
+displays
+8.0K	Desktop
+340K	Documents
+32M	Downloads
+4.0K	Music
+4.0K	Pictures
+4.0K	Public
+4.0K	Templates
+4.0K	Videos
+
+or
+ls | grep 'D' | xargs du -sh
+displays
+8.0K	Desktop
+340K	Documents
+32M	Downloads
+
+you can run a subshell within the shell
+
+e.g.
+echo "My current directory is: $(pwd)"
+My current directory is: /home/luke
+
+The syntax is $(...)
+You can run other commands or even chains of commands inside the subshell
+The output of the command(s) is essentially injected into the spot where you put $() in the original command
+
+You can write the stdout of a command into a file using >
+e.g.
+ls --help > ls-help.txt
+If you use >> instead you will append to the file instead of overwriting it
+
+You can go the other way and use < to pass file contents into a command's stdin
+
+fzf (needs installing) is a fuzzy finder
+
+compgen -c lists all of the commands available
+pipe it into less to make it easier to read:
+compgen -c | less
+
+let's try some combinations
+compgen -c | fzf | xargs man
+lets you search through a list of all of the commands on your system and pull up it's manual page
+
+when you come up with something handy like this, you can create an alias for it:
+alias fman="compgen -c | fzf | xargs man"
+now running fman runs the original string of commands
+you can add this alias line to .bashrc and it will be available in each new shell session
+
+nano vi and gedit are all text editors for the terminal
+
+du -ah . | sort -hr | head -n 10
+shows you the ten biggest files in the current working directory
+
+history shows you the previous commands you have run
+
+curl gets data from a url
+
+hotkeys:
+CTRL-C - kill active process
+CTRL-K - exit shell
+CTRL-L - clear the screen
+CTRL-Z - put process in background - use 'fg' to bring it back to the foreground
+CTRL-A - go to the front of the line
+CTRL-E - go to the end of the line
+CTRL-F - go forward one character
+CTRL-B - go backwards one character
+ALT-F  - go forwards one word
+ALT-B  - go backwards one word
+!!     - run previous command
+!<cmd> - run previous matching command
+CTRL-X CTRL-E - open line in $EDITOR
+
+###############################################################################################################################
+
+https://www.youtube.com/watch?v=4ygaA_y1wvQ
+
+create a bash script:
+touch ./hello.sh
+
+the first line of a bash script should always be the shebang:
+#!/usr/bin/env bash
+it tells your shell which interpreter to use for this script (gives it the path to bash)
+
+you can do
+#!/bin/bash
+but it's less portable - not everyone has bash installed there!
+
+bash is a shell language, and so is very command focussed
+this makes it really easy to work with
+anything that you can run on the command line can be run in the same exact way in a bash script
+
+it has access to all of the same things that you do in the command line
+
+you can take any series of commands that you might run and enclose them into a single script
+
+PERMISSIONS (on unix systems)
+
+if we just have a simple script that should echo "Hello world" and we try to run it, we get:
+bash: ./hello.sh: Permission denied
+
+if we run ls -l, we can see the permissions on the file
+-rw-rw-r-- 1 luke luke   41 Nov 23 19:00 hello.sh
+it has read/write permissions for user and group, and read only for other
+
+we want to give the user permission to execute the script
+so we run
+chmod u+x ./hello.sh
+(for the user, add execute permissions for the file hello.sh)
+if we now do ls -l again
+-rwxrw-r-- 1 luke luke   41 Nov 23 19:00 hello.sh
+we could also have done chmod +x to add execute permissions for everyone
+we can now execute the script!
+and we get
+Hello, world!
+
+VARIABLES
+let's pull out the name we are saying hello to:
+
+name="Luke"
+
+You can't have spaces around the = here, because bash reads everything as a command
+so it would read
+name = "Luke"
+as the 'name' command with '=' and 'Luke' as arguments
+
+We can then reference the variable:
+
+echo "Hello, $name!"
+and we get
+Hello, Luke!
+
+If we used single quotes instead of double quotes
+echo 'Hello, $name!'
+we would get 
+Hello, $name!
+as output, because the single quotes don't do the variable expansion
+
+We can also reference variables like
+echo "Hello ${name}!"
+Using the curly braces has some nice properties.
+We could do
+echo "Hello ${#name}!"
+which gives us the length of whatever is stored in name
+
+A common situation is to have a variable which is undefined, and then we go and try to reference it
+Using curly braces we can specify a default value for the variable
+
+name=""
+echo "Hello, ${name:-"Anonymous"}!"
+
+which would give us back
+Hello, Anonymous!
+
+However, in this case, if we then do
+echo $name
+We would get a blank output, because name is still undefined
+We can instead do
+
+name=""
+echo "Hello, ${name:="Anonymous"}!"
+
+Which will set Anonymous as the value for name
+then doing echo $name later will give us back Anonymous
+
+SUBSHELL
+
+you put a set of parentheses ()
+and inside the () is an operation
+
+for instance,
+running pwd might give me
+/home/luke/Documents/Programming/bash-scripts
+i could do
+(cd ..; pwd)
+which would open a new subshell, cd .. to move to the parent directory, then do pwd
+and i would get
+/home/luke/Documents/Programming
+but then doing pwd again later down the line in the bash script, i would still get
+/home/luke/Documents/Programming/bash-scripts
+
+any operation within the subshell is just within the context of the subshell
+it doesn't impact what's happening in the current shell the bash script is running in
+
+most often, we will use this for command substitution: $()
+e.g.
+
+var=$(pwd)
+echo $var
+
+gives us /home/luke/Documents/Programming/bash-scripts
+you can use the command anywhere that you would use a value
+
+here's a more interesting example:
+
+image_url=$(curl -s "https://api.nasa.gov/planetary/apod?api_key=APIKEYHERE" | jq -r '.hdrul')
+curl -s "$image_url" -o "apod.jpg"
+
+we use the subshell to make an api call to the nasa api
+this gives a JSON response
+we use jq to parse the JSON and get the image url
+so now image_url just stores the url of the image we care about
+we then use the image_url variable to curl and get that image and store it as apod.jpg
+
+we can do process substitution, where we treat the output of a process as a file: <()
+
+diff <(ls ./v1) <(ls ./v2)
+
+here we are using diff, which is expecting two different files to be passed in
+we use <() to treat the output of ls ./v1 and ./v2 as files so they can be passed to diff
+
+there is also arithmetic expansion: $(())
+
+$(( 3 + 4 ))
+outputs 7
+
+COMMAND LINE ARGUMENTS - user input
+
+in this example command:
+
+./mergeav.sh input.mp4 input.wav output.mp4
+    ($0)        ($1)     ($2)       ($3)
+
+the mergeav command will be stored in variable $0,
+the first argument input.mp4 will be stored in $1
+the second argument input.wav will be stored in $2
+the third argument output.mp4 will be stored in $3
+
+a good practice is to use intermediary variables to assign meaningful names to these $1, $2, .. variables
+
+e.g.
+video_input="$1"
+audio_input="$2"
+output="$3"
+
+then we use those to write the script
+e.g.
+ffmpeg -i "$video_input" -i "$audio_input" -c:v vopy -c:a aac -map 0:v:0 -map 1:a:0 "$output"
+
+it would be exactly the same to use $1, $2, ... in place of these variables
+but renaming them makes it much clearer what is going on
+
+IF STATEMENTS
+
+if [[ some_condition ]]; then
+    echo "This condition is true"
+elif [[ some_other_condition ]]; then
+    echo "This other condition is true"
+else
+    echo "None of the conditions are true"
+fi
+
+It's a bit weird to have the semicolons in the middle of the line
+we can also write it as
+
+if [[ some_condition ]]
+then
+    echo "This condition is true"
+elif [[ some_other_condition ]]
+then
+    echo "This other condition is true"
+else
+    echo "None of these conditions are true"
+fi
+
+
+EXIT CODES
+
+in normal programming languages there is a concept of truthiness
+1 == 1 is true and 1 == 2 is false
+that's not the way that it works in bash.
+Instead it uses exit codes:
+
+exit code 0 => success
+exit code n (with n being anything except 0) => failure
+
+the specific number of an exit code doesn't GENERALLY mean anything
+a specific command / script can choose which exit codes to assign to whatever errors
+
+but we would generally do something like
+
+if [[ ...some failure condition ]]; then
+    echo "Something broke"
+    exit 1
+fi
+
+this exit code approach means that you can use commands as your conditionals
+for instance
+
+if grep -q "ERROR" "logs.txt"; then
+    echo "There are errors in the log file"
+else
+    echo "All is fine in the world"
+fi
+
+We are searching logs.txt for "ERROR". If there's a match, then there was a success => exit code 0
+so therefore we will do what's in the first block, echo "There are errors..."
+Otherwise, if there are no matches we will do the else block
+
+CONDITIONALS
+
+## String comparison ##
+
+val="a"
+[[ "$val" == "a" ]] #Equal
+[[ "$val" != "b" ]] #Not Equal
+
+Be careful with the spaces here
+[["$val" != "b"]] gives a syntax error
+
+## Numerical comparison ##
+
+num=1
+[[ "$num" -eq 1 ]] #Equal
+[[ "$num" -ne 2 ]] #Not equal
+[[ "$num" -lt 2 ]] #Less than
+[[ "$num" -le 2 ]] #Less than or equal to
+[[ "$num" -gt 1 ]] #Greater than
+[[ "$num" -ge 1 ]] #Greater than or equal to
+
+## Variable existence ##
+
+val=""
+[[ -z $val ]] #Variable is null (empty)
+[[ -n $val ]] #Variable is non-null
+
+## File checks ##
+
+file="./hello"
+[[ -f $file ]] #File exists
+[[ -d $file ]] #Directory exists
+[[ -e $file ]] #File / directory exists
+
+## Permission checks ##
+
+file="./hello"
+[[ -r $file ]] #File is readable
+[[ -w $file ]] #File is writeable
+[[ -x $file ]] #File is executable
+
+#Combinations
+
+val=7
+
+#Internal
+[[ $val -gt 5 -a $val -lt 10 ]] # -a => Logical AND
+[[ $val -gt 5 -o $val -lt 3 ]]  # -o -> Logical OR
+
+#External
+[[ $val -gt 5 ]] && [[ $val -lt 10 ]] #Logical AND
+[[ $val -gt 5 ]] || [[ $val -lt 3 ]]  #Logical OR
+
+## USEFUL COMMANDS ## 
+
+sleep n - sleep for n seconds
+
+read - read user input
+e.g.
+echo "What's your name?"
+read -r name
+echo "Hello, $name!"
+
+or
+read -p "Do you want to continue? (Y/n) " resp
+if [[ $resp != "Y" ]]; then
+    exit 1
+fi
+echo "Continuing..."
+
+## GOOD BEHAVIOUR ##
+
+in javascript, 'strict mode' makes things a bit more strict, so you're more likely to see the errors in your code
+there's a similar thing in bash:
+
+set -euo pipefail
+
+this does the same thing as:
+set -e          # exit on error
+set -u          # exit on unset variable
+set -o pipefail # exit on pipe fail
+
+if you don't do this, things like this happen:
+
+#without set -e
+
+false       #this command fails
+echo "This line runs, even though it probably shouldn't"
+
+#with set -e
+
+false       #this command fails
+echo "This line won't run"
+
+as an aside, there is conditional execution:
+
+command1 && command2 - if the first command succeeds, perform the second
+command1 || command2 - if the first command fails, perform the second. if command1 succeeds, skip command2 altogether
+
+using these we can rewrite the above examples:
+
+#without set -e
+
+false || exit 1     #if the command fails (which it will), properly exit
+echo "This line no longer runs"
+
+#with set -e
+
+false || true       #ignore the error and keep going
+echo "This line will run"
+
+continuing on...
+
+#without set -u
+
+echo "Hello, $name"     #name is undefined, but it'll run just fine
+echo "This line runs, even though it probably shouldn't"
+
+#with set -u
+
+echo "Hello, $name"     #name is undefined, so it'll exit
+echo "This line won't run"
+
+#without set -o pipefail
+set -e      #remember, with set -e it'll exit on a failure
+false | echo "Hello!"   #the failure from 'false' gets lost in the pipeline
+echo "This line runs, even though it probably shouldn't"
+
+#with set -o pipefail
+set -eo pipefail
+false | echo "Hello"    #the failure from 'false' is detected and the script exits
+echo "This line won't run"
+
+so, in general, we should start our bash scripts like:
+
+#!usr/bin/env bash
+set -euo pipefail
+
+remember that errors are your friend!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
