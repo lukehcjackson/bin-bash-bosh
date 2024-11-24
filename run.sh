@@ -12,7 +12,7 @@ extension="${filename##*.}"
 filename="${filename%.*}"
 
 #   C / C++
-if [[ "$extension" == "c" -o "$extension" == "cpp" ]]; then
+if [[ "$extension" == "c" ]] || [[ "$extension" == "cpp" ]]; then
     if gcc "$file" -o "$filename"; then
         ./"$filename"
     fi
