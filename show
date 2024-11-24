@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+#incredible productivity tool to save me opening firefox
+
+#argument 1 is the mode we are using
+mode=$1
+
+#modes:
+
+#uni
+if [[ "$mode" == "uni" ]]; then
+    xdg-open https://vle.york.ac.uk/ultra/course
+    xdg-open https://drive.google.com/drive/u/0/my-drive
+    xdg-open https://learnyouahaskell.com/chapters
+    sleep 0.1
+    xdg-open https://mail.google.com/mail/u/0/#inbox
+fi
+
+#coding
+if [[ "$mode" == "code" ]]; then
+    xdg-open https://learnyouahaskell.com/chapters
+    sleep 0.1
+    xdg-open https://github.com/lukehcjackson
+    #xdg-open https://chatgpt.com/
+fi
+
+#obviously never going to use this one
+if [[ "$mode" == "procrastinating" ]]; then
+    xdg-open https://www.youtube.com/feed/subscriptions
+fi
