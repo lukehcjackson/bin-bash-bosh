@@ -530,40 +530,206 @@ set -euo pipefail
 
 remember that errors are your friend!
 
+## ARRAYS ##
+
+my_arr=(1 2 3 4 5)
+
+echo ${my_arr[0]}   #1
+echo ${my_arr[@]}   #@ refers to all elements (1 2 3 4 5). you can also just do my_arr with no []
+echo ${#my_arr[@]}  #prints the length of the array (5)
+
+## FOR LOOPS ##
+
+#standard for loop
+my_arr=(1 2 3 4 5)
+for item in $my_arr[@]; do
+    echo $item
+done
+
+#c-style for loop
+for ((i = 0; i < 10; i++)); do
+    echo "$i"
+done
+
+#range
+for i in {1..10}; do
+    echo "$i"
+done
+
+#pattern matching
+for item in ./content/*.md; do      #look at all markdown files in the content directory
+    echo "$item"
+done
+
+#command result
+for item in $(ls); do
+    echo "$item"
+done
+
+## WHILE LOOPS ##
+
+counter=0
+while [[ $counter -lt 5 ]]; do
+    echo $counter                  
+    ((counter++))
+done
+
+note that we don't need "" around the variable. generally we only need "" if the variable could contain whitespace
+because bash would interpret it as a series of commands rather than a value
+for a counter like this it's just a number so we don't need ""
+
+#'wait until true' loop
+while true; do
+    $status= something goes here
+    if [[ "$status" == "Running" ]]; then
+        break
+    else
+        echo "Waiting to get into a running state"
+        sleep 1
+    fi
+done
+echo "Now in a running state"
+
+## MULTIPLE FILES ##
+bash has no concept of namespacing or modules
+it just has separate files
+
+in our main script we could have something like
+echo "provisioning environment"
+./instance.sh
+./dns.sh
+echo "provisioning complete!"
+
+then we have instance.sh:
+    (... does something here)
+
+and also dns.sh:
+    (...probably also does something)
+
+there are two ways to use multiple files / scripts:
+
+#sourcing the script - share the same shell
+
+#script1.sh
+favourite_colour="green"
+echo $favourite_colour
+. ./script2.sh
+echo $favourite_colour
+
+#script2.sh
+echo $favourite_colour
+favourite_colour="blue"
+echo $favourite_colour
+
+#output:
+green
+green
+blue
+blue
+
+sourcing essentially takes the contents of script2 and dumps it into script1 where the . ./script2.sh is
+
+#subshell
+
+#script1.sh
+favourite_colour="green"
+echo $favourite_colour
+./script2.sh
+echo $favourite_colour
+
+#script2.sh
+echo $favourite_colour
+favourite_colour="blue"
+echo $favourite_colour
+
+#output
+green
+                #if we had set -u, script2.sh would have exited here because the favourite colour variable was undefined
+blue
+green
 
 
+## FUNCTIONS ##
+
+functions do exist in bash but they aren't really used very often
+
+function ensure_dependency () {
+    local tool=$1
+    local install_url=$2
+    if ! command -v "$tool" &> /dev/null; then
+        echo "Error: $tool is not installed." >&2
+        echo "Please install $tool from $install_url" >&2
+        exit 1
+    fi
+}
+
+we then call it doing something like
+ensure_dependency "docker" "https://docs.docker.com"
+
+the syntax is function name () {...}
+there are no arguments within the parentheses! 
+instead we take in whatever is passed to the function as arguments as $1, $2, ...
+and then we can do whatever we want with those inside the function
+note that these $1, $2, ... are totally separate to the 'global' $1, $2 we might have used in the main script
+
+we have to use the local keyword to specify local variables
+otherwise we would be specifying them globally
+
+## TEMPORARY FILES ##
+
+if you do
+tempfile=$(mktemp)
+
+it will create a file inside a temporary directory and give a reference to that
+you can then treat it like any other file
+it will get cleaned up automatically at some point by your system
+
+you can combine with with the trap command:
+trap "rm -f $tempfile" EXIT
+we will execute the command rm -f $tempfile on a given signal
+the signal we are looking for is EXIT - as soon as the script completes
+
+so we could do
+
+tempfile=$(mktemp)
+trap "rm -f $tempfile" EXIT
+echo "Hello world" > $tempfile
+
+which writes Hello world to the temp file, then deletes it as soon as the script ends
+
+## NAMING CONVENTIONS ##
+you can actually leave out the .sh when naming a script
+a good convention is:
+call your script "script.sh" when it is a local script, only really used for one thing / project
+call your script "script" when it is acting like a system-wide 'command'
 
 
+## $PATH ##
 
+say we have a script and we run it like
+./blackout
 
+this works if it's in the current directory
+but doing just
+blackout
+doesn't work, because 'blackout' isn't in the $PATH
 
+we need to add
+export PATH=$PATH:path/to/script
+into ~/.bashrc
 
+## SCRIPTING PROCESS ##
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+0. Figure out what you want to do
+1. Identify the tools you'll use
+    -the majority of the stuff inside a script is just glueing together preexisting tools
+2. Sketch it out in the terminal - manually run the commands
+3. Copy the commands into a script (use history)
+4. Pull out variables and inputs
+5. Add checks (guards, etc.)
+#Optional
+6. Add loops / functions / more advanced logic
+7. If it's growing too big, split into multiple files
 
 
 
