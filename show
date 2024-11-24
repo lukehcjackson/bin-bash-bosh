@@ -13,19 +13,23 @@ if [[ "$mode" == "uni" ]]; then
     xdg-open https://vle.york.ac.uk/ultra/course
     xdg-open https://drive.google.com/drive/u/0/my-drive
     xdg-open https://learnyouahaskell.com/chapters
-    sleep 0.1
     xdg-open https://mail.google.com/mail/u/0/#inbox
+    exit 0
 fi
 
 #coding
 if [[ "$mode" == "code" ]]; then
     xdg-open https://learnyouahaskell.com/chapters
-    sleep 0.1
     xdg-open https://github.com/lukehcjackson
     #xdg-open https://chatgpt.com/
+    exit 0
 fi
 
 #obviously never going to use this one
 if [[ "$mode" == "procrastinating" ]]; then
     xdg-open https://www.youtube.com/feed/subscriptions
+    exit 0
 fi
+
+echo "Usage: show mode - either uni, code, or procrastinating"
+exit 0
